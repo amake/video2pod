@@ -1,0 +1,7 @@
+[upstream]
+podcast_feed_url = 
+video_playlist_url = 
+
+[deployment]
+enclosure_url_format = 
+deploy_path = 
