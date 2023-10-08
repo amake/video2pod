@@ -33,12 +33,20 @@ def _get_chapters(frames, length_ms):
 
 
 def chapterize(mp3_path, frames_path, outfile):
+    shutil.copyfile(mp3_path, outfile)
+
     infile = mutagen.File(mp3_path)
     length_ms = int(infile.info.length * 1000)
 
     tag = ID3(mp3_path)
 
     frames = sorted(_get_frames(frames_path))
+
+    if (len(frames) > 255):
+        print(f'{mp3_path}: too many frames ({len(frames)} > 255); not chapterizing',
+              file=sys.stderr)
+        return
+
     chapters = list(_get_chapters(frames, length_ms))
     toc = CTOC(
         element_id='toc',
@@ -50,7 +58,6 @@ def chapterize(mp3_path, frames_path, outfile):
     for ch in chapters:
         tag.add(ch)
 
-    shutil.copyfile(mp3_path, outfile)
     tag.save(outfile)
 
 
