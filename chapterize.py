@@ -17,6 +17,7 @@ def _get_frames(f_id: str):
 
 def _get_chapters(frames, length_ms):
     for i, (timestamp, path) in enumerate(frames):
+        start_time = 0 if i == 0 else timestamp
         end_time = frames[i + 1][0] if i + 1 < len(frames) else length_ms
         with open(path, 'rb') as pic:
             apic = APIC(
@@ -27,7 +28,7 @@ def _get_chapters(frames, length_ms):
         tit2 = TIT2(text=f'Chapter {i + 1}')
         yield CHAP(
             element_id=f'chp{i}',
-            start_time=timestamp,
+            start_time=start_time,
             end_time=end_time,
             sub_frames=[tit2, apic]
         )
