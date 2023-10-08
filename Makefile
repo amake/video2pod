@@ -1,6 +1,7 @@
 src_mp3s := $(wildcard archive/*.mp3)
 dist_mp3s := $(src_mp3s:archive/%.mp3=dist/%.mp3)
 feed := dist/feed.xml
+archive_txt := dist/archive.txt
 
 $(if $(wildcard config.ini),,$(error config.ini not found; see config.ini.example))
 
@@ -8,7 +9,7 @@ config_get = awk -F ' = ' '/^$(1) *=/ {print $$2}' config.ini
 
 .PHONY: all
 all: ## Build everything
-all: mp3s feed
+all: mp3s feed archive-txt
 
 .PHONY: mp3s
 mp3s: ## Build MP3s
@@ -64,12 +65,18 @@ feed: $(feed)
 $(feed): archive/archive.txt | $(env)
 	$(env)/bin/python3 feedswap.py $$(cut -d ' ' -f 2 $(<)) > $(@)
 
+.PHONY: archive-txt
+archive-txt: $(archive_txt)
+
+$(archive_txt): archive/archive.txt
+	cp $(<) $(@)
+
 dryrun := --dryrun
 
 .PHONY: deploy
 deploy: | dist
 	deploy_path=$$($(call config_get,deploy_path)) && \
-	cd $(|) && aws s3 sync $(dryrun) --exclude '*.xml' \
+	cd $(|) && aws s3 sync $(dryrun) --exclude '*.xml' --exclude '*.txt' \
 		--acl public-read . $$deploy_path && \
 	aws s3 sync $(dryrun) --exclude '*.mp3' \
 		--acl public-read --cache-control max-age=30 . $$deploy_path
