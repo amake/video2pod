@@ -14,6 +14,11 @@ all: mp3s feed
 mp3s: ## Build MP3s
 mp3s: $(dist_mp3s)
 
+.PHONY: clobber
+clobber: ## Remove all generated dist files
+clobber:
+	rm -rf dist
+
 define explode
 work/%: archive/%$(1)
 	mkdir -p $$(@)
