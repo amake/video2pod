@@ -61,8 +61,6 @@ prune:
 feed: ## Build feed
 feed: $(feed)
 
-archive/archive.txt: archive
-
 $(feed): archive/archive.txt | $(env)
 	$(env)/bin/python3 feedswap.py $$(cut -d ' ' -f 2 $(<)) > $(@)
 
