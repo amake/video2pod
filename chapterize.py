@@ -6,6 +6,53 @@ import mutagen
 from mutagen.id3 import (ID3, CHAP, CTOC, APIC, TIT2, TLEN, TENC,
                          PictureType, CTOCFlags)
 
+# Monkey patch to ensure chapter order
+# https://github.com/quodlibet/mutagen/pull/539
+from mutagen.id3._tags import ID3Tags, save_frame
+
+
+def _write(self, config):
+    # Sort frames by 'importance', then reverse frame size and then frame
+    # hash to get a stable result
+    order = ["TIT2", "TPE1", "TRCK", "TALB", "TPOS", "TDRC", "TCON"]
+
+    framedata = [
+        (f, save_frame(f, config=config)) for f in self.values()]
+
+    def get_prio(frame):
+        try:
+            return order.index(frame.FrameID)
+        except ValueError:
+            return len(order)
+
+    def sort_key(items):
+        frame, data = items
+        frame_key = frame.HashKey
+        frame_size = len(data)
+
+        # Let's ensure chapters are always sorted by their 'start_time'
+        # and not by size/element_id pair.
+        if frame.FrameID == "CHAP":
+            frame_key = frame.FrameID
+            frame_size = frame.start_time
+
+        return (get_prio(frame), frame_size, frame_key)
+
+    framedata = [d for (f, d) in sorted(framedata, key=sort_key)]
+
+    # only write unknown frames if they were loaded from the version
+    # we are saving with. Theoretically we could upgrade frames
+    # but some frames can be nested like CHAP, so there is a chance
+    # we create a mixed frame mess.
+    if self._unknown_v2_version == config.v2_version:
+        framedata.extend(data for data in self.unknown_frames
+                         if len(data) > 10)
+
+    return bytearray().join(framedata)
+
+
+ID3Tags._write = _write
+
 
 def _get_frames(f_id: str):
     paths = glob(f'{f_id}/*.jpg')
