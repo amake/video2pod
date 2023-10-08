@@ -3,7 +3,7 @@ import os
 import shutil
 from glob import glob
 import mutagen
-from mutagen.id3 import ID3, CHAP, CTOC, APIC, PictureType, CTOCFlags
+from mutagen.id3 import ID3, CHAP, CTOC, APIC, TIT2, PictureType, CTOCFlags
 
 
 def _get_frames(f_id: str):
@@ -23,11 +23,12 @@ def _get_chapters(frames, length_ms):
                 mime='image/jpeg',
                 data=pic.read()
             )
+        tit2 = TIT2(text=f'Chapter {i + 1}')
         yield CHAP(
             element_id=f'chp{i}',
             start_time=timestamp,
             end_time=end_time,
-            sub_frames=[apic]
+            sub_frames=[apic, tit2]
         )
 
 
