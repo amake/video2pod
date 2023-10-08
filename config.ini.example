@@ -4,4 +4,7 @@ video_playlist_url =
 
 [deployment]
 enclosure_url_format = 
-deploy_path = 
+aws_ecr_tag = 
+deploy_bucket = 
+deploy_key_prefix = 
+aws_lambda_name = 
