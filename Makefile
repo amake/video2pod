@@ -43,7 +43,7 @@ env: $(env)
 
 $(env):
 	python3 -m venv $(@)
-	$(@)/bin/pip install mutagen lxml yt-dlp editdistance
+	$(@)/bin/pip install -r requirements.txt
 
 .PHONY: archive
 archive: ## Download videos
