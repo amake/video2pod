@@ -3,7 +3,8 @@ import os
 import shutil
 from glob import glob
 import mutagen
-from mutagen.id3 import ID3, CHAP, CTOC, APIC, TIT2, PictureType, CTOCFlags
+from mutagen.id3 import (ID3, CHAP, CTOC, APIC, TIT2, TLEN, TENC,
+                         PictureType, CTOCFlags)
 
 
 def _get_frames(f_id: str):
@@ -28,7 +29,7 @@ def _get_chapters(frames, length_ms):
             element_id=f'chp{i}',
             start_time=timestamp,
             end_time=end_time,
-            sub_frames=[apic, tit2]
+            sub_frames=[tit2, apic]
         )
 
 
@@ -38,7 +39,7 @@ def chapterize(mp3_path, frames_path, outfile):
     infile = mutagen.File(mp3_path)
     length_ms = int(infile.info.length * 1000)
 
-    tag = ID3(mp3_path)
+    tag = ID3(mp3_path, v2_version=3)
 
     frames = sorted(_get_frames(frames_path))
 
@@ -58,7 +59,13 @@ def chapterize(mp3_path, frames_path, outfile):
     for ch in chapters:
         tag.add(ch)
 
-    tag.save(outfile)
+    tag.add(TLEN(text=str(length_ms)))
+    tag.add(TENC(text='chapterize.py'))
+
+    tag.delall('TXXX')
+    tag.delall('TSSE')
+
+    tag.save(outfile, v2_version=3)
 
 
 def main():
