@@ -64,8 +64,15 @@ feed: $(feed)
 $(feed): archive/archive.txt | $(env)
 	$(env)/bin/python3 feedswap.py $$(cut -d ' ' -f 2 $(<)) > $(@)
 
+dryrun := --dryrun
+
 .PHONY: deploy
-deploy: # TODO
+deploy: | dist
+	deploy_path=$$($(call config_get,deploy_path)) && \
+	cd $(|) && aws s3 sync $(dryrun) --exclude '*.xml' \
+		--acl public-read . $$deploy_path && \
+	aws s3 sync $(dryrun) --exclude '*.mp3' \
+		--acl public-read --cache-control max-age=30 . $$deploy_path
 
 .PHONY: shell
 shell: | $(env)
