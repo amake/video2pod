@@ -45,6 +45,9 @@ def feedswap(known_ids):
         raw_xml = response.read()
     xml = etree.fromstring(raw_xml)
 
+    feed_title = xml.xpath('//channel/title')[0]
+    feed_title.text += ' (video2pod)'
+
     videos = list(_get_videos(video_url))
 
     for item in xml.xpath('//item'):
