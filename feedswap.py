@@ -1,7 +1,7 @@
 import sys
 import os
 import urllib.request
-from lxml import etree
+from xml.etree import ElementTree
 from yt_dlp import YoutubeDL
 import editdistance
 from configparser import ConfigParser
@@ -20,6 +20,21 @@ config = load_config('config.ini')
 pod_url = config['upstream']['podcast_feed_url']
 video_url = config['upstream']['video_playlist_url']
 enclosure_url_format = config['deployment']['enclosure_url_format']
+
+NS = {
+    'atom': 'http://www.w3.org/2005/Atom',
+    'content': 'http://purl.org/rss/1.0/modules/content/',
+    'dc': 'http://purl.org/dc/elements/1.1/',
+    'googleplay': 'http://www.google.com/schemas/play-podcasts/1.0',
+    'itunes': 'http://www.itunes.com/dtds/podcast-1.0.dtd',
+    'media': 'http://search.yahoo.com/mrss/',
+    'podcast': 'https://podcastindex.org/namespace/1.0',
+    'spotify': 'http://www.spotify.com/ns/rss',
+    'wfw': 'http://wellformedweb.org/CommentAPI/',
+}
+
+for prefix, uri in NS.items():
+    ElementTree.register_namespace(prefix, uri)
 
 
 def _get_videos(url):
@@ -43,16 +58,16 @@ def _find_closest_match(needle, haystack, key: lambda x: x):
 def feedswap(known_ids):
     with urllib.request.urlopen(pod_url) as response:
         raw_xml = response.read()
-    xml = etree.fromstring(raw_xml)
+    xml = ElementTree.fromstring(raw_xml)
 
-    feed_title = xml.xpath('//channel/title')[0]
+    feed_title = xml.find('.//channel/title')
     feed_title.text += ' (video2pod)'
 
     videos = list(_get_videos(video_url))
 
-    for item in xml.xpath('//item'):
-        title = item.xpath('title')[0].text
-        enclosure = item.xpath('enclosure')[0]
+    for item in xml.findall('.//item'):
+        title = item.find('title').text
+        enclosure = item.find('enclosure')
 
         ep_no = title.split(':')[0] if ':' in title else title
         m = _find_closest_match(ep_no, videos, key=lambda x: x[0])
@@ -64,7 +79,7 @@ def feedswap(known_ids):
             continue
         enclosure.attrib['url'] = enclosure_url_format % f'{v_id}.mp3'
 
-    print(etree.tounicode(xml, pretty_print=True))
+    print(ElementTree.tostring(xml, encoding='unicode', default_namespace=''))
 
 
 def main():

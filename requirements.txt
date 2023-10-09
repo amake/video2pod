@@ -1,4 +1,3 @@
 mutagen
-lxml
 yt-dlp
 editdistance
