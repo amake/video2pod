@@ -20,6 +20,12 @@ deploy_key_prefix = config['deployment']['deploy_key_prefix']
 
 s3 = boto3.client('s3')
 
+mime_types = {
+    '.txt': 'text/plain',
+    '.xml': 'application/xml',
+    '.mp3': 'audio/mpeg',
+}
+
 
 def run(event, context):
     os.makedirs('/tmp/archive', exist_ok=True)
@@ -45,7 +51,13 @@ def run(event, context):
     #                 'env=/var/lang', 'dryrun='], check=True)
 
     for f in glob('/tmp/dist/*'):
-        extra_args = {'ACL': 'public-read'}
+        _, ext = os.path.splitext(f)
+        if ext not in mime_types:
+            raise ValueError(f'Unknown file extension {ext}')
+        extra_args = {
+            'ACL': 'public-read',
+            'ContentType': mime_types[ext],
+        }
         if not f.endswith('.mp3'):
             extra_args['CacheControl'] = 'max-age=30'
         key = f'{deploy_key_prefix}{os.path.basename(f)}'
