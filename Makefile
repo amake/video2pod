@@ -91,7 +91,7 @@ deploy: | $(dist)
 
 .PHONY: build
 build:
-	docker build --platform linux/amd64 -t video2pod .
+	docker build --platform linux/arm64 -t video2pod .
 	docker tag video2pod $$($(call config_get,aws_ecr_tag))
 
 .PHONY: push
