@@ -47,3 +47,10 @@ Lambda function and set the appropriate values in `config.ini`.
 
 The Lambda function will need a lot of RAM, storage, and execution time. Tuning
 is left as an exercise for the reader.
+
+## Where can I listen to it?
+
+You can't, because I'm not in the business of hosting podcasts. If you are
+affiliated with Well There's Your Problem and would like access for the purposes
+of investigating whether these tools could be useful in publishing an official
+chapterized feed, then please contact me.
