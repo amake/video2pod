@@ -25,6 +25,7 @@ clobber: ## Remove all generated dist files
 clobber:
 	rm -rf dist
 
+.PRECIOUS: $(work)/%
 define explode
 $(work)/%: $(archive)/%$(1)
 	mkdir -p $$(@)
