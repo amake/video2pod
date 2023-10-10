@@ -29,7 +29,7 @@ Optional (for deploying on AWS):
 
 ## Setup
 
-1. Clone this repo
+1. Clone this repo. Run `make help` for info on the basic operations.
 2. Copy `config.ini.example` to `config.ini` and fill it out. The `deployment`
    section is only required if you plan to deploy this to AWS Lambda.
 3. Run `make archive` to download the videos
@@ -45,8 +45,16 @@ Lambda function and set the appropriate values in `config.ini`.
 7. Run `make push` to push the Docker image to ECR and update the Lambda
    function to use it
 
-The Lambda function will need a lot of RAM, storage, and execution time. Tuning
-is left as an exercise for the reader.
+### Configuring AWS
+
+The audio files and RSS feed are served out of S3. You will probably want to put
+CloudFront in front of it. The external URL pointing to `feed.xml` can be
+subscribed to in your podcast player.
+
+The Lambda function updates the feed. When there is a new video to convert, it
+will need a lot of RAM, storage, and execution time. Tuning is left as an
+exercise for the reader. You will probably want to trigger it on a schedule e.g.
+via EventBridge.
 
 ## Where can I listen to it?
 
