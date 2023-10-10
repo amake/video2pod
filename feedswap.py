@@ -39,7 +39,7 @@ for prefix, uri in NS.items():
 
 def _get_videos(url):
     channel = (YoutubeDL({'extract_flat': 'in_playlist', 'quiet': True})
-               .extract_info(video_url, download=False))
+               .extract_info(url, download=False))
     for video in channel['entries']:
         yield (video['title'], video['id'])
 
