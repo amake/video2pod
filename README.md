@@ -33,7 +33,7 @@ Optional (for deploying on AWS):
 
 1. Clone this repo. Run `make help` for info on the basic operations.
 2. Copy `config.ini.example` to `config.ini` and fill it out. The `deployment`
-   section is only required if you plan to deploy this to AWS Lambda.
+   section is only required if you plan to deploy this to AWS.
 3. Run `make archive` to download the videos
 4. Run `make all` to produce the chapterized audio files. Look in the `dist`
    directory.
