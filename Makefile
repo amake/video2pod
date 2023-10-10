@@ -99,6 +99,7 @@ push:
 	tag=$$($(call config_get,aws_ecr_tag)); \
 	docker push $$tag; \
 	aws lambda update-function-code \
+		--architectures arm64 \
 		--function-name $$($(call config_get,aws_lambda_name)) \
 		--image-uri $$tag
 
