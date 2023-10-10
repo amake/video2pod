@@ -36,10 +36,14 @@ video_exts = .mkv .webm
 
 $(foreach _,$(video_exts),$(eval $(call explode,$(_))))
 
+.PRECIOUS: $(work)/%.json
+$(work)/%.json: | $(work) $(env)
+	$(env)/bin/yt-dlp --dump-json -- $(*) > $(@)
+
 $(dist) $(work):
 	mkdir -p $(@)
 
-$(dist)/%.mp3: $(archive)/%.mp3 $(work)/% | $(dist)
+$(dist)/%.mp3: $(archive)/%.mp3 $(work)/% $(work)/%.json | $(dist)
 	$(env)/bin/python3 chapterize.py $(^) $(@)
 
 env := $(PREFIX)/.env

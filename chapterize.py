@@ -1,6 +1,7 @@
 import sys
 import os
 import shutil
+import json
 from glob import glob
 import mutagen
 from mutagen.id3 import (ID3, CHAP, CTOC, APIC, TIT2, TLEN, TENC,
@@ -62,17 +63,29 @@ def _get_frames(f_id: str):
         yield timestamp, path
 
 
-def _get_chapters(frames, length_ms):
+def _find_title(start, end, chapter_annotations):
+    closest = next(
+        iter(
+            sorted((a for a in chapter_annotations),
+                   key=lambda a: abs(start - a['start_time'] * 1000))
+        ),
+        None
+    )
+    return closest['title'] if closest else None
+
+
+def _get_chapters(frames, length_ms, chapter_annotations):
     for i, (timestamp, path) in enumerate(frames):
         start_time = 0 if i == 0 else timestamp
         end_time = frames[i + 1][0] if i + 1 < len(frames) else length_ms
+        title = _find_title(start_time, end_time, chapter_annotations)
         with open(path, 'rb') as pic:
             apic = APIC(
                 type=PictureType.OTHER,
                 mime='image/jpeg',
                 data=pic.read()
             )
-        tit2 = TIT2(text=f'Chapter {i + 1}')
+        tit2 = TIT2(text=title or f'Chapter {i + 1}')
         yield CHAP(
             element_id=f'chp{i}',
             start_time=start_time,
@@ -81,7 +94,7 @@ def _get_chapters(frames, length_ms):
         )
 
 
-def chapterize(mp3_path, frames_path, outfile):
+def chapterize(mp3_path, frames_path, infojson_path, outfile):
     shutil.copyfile(mp3_path, outfile)
 
     infile = mutagen.File(mp3_path)
@@ -96,7 +109,14 @@ def chapterize(mp3_path, frames_path, outfile):
               file=sys.stderr)
         return
 
-    chapters = list(_get_chapters(frames, length_ms))
+    with open(infojson_path, encoding='utf8') as f:
+        infojson = json.load(f)
+
+    chapters = list(_get_chapters(
+        frames,
+        length_ms,
+        infojson['chapters'] or [],
+    ))
     toc = CTOC(
         element_id='toc',
         flags=CTOCFlags.TOP_LEVEL | CTOCFlags.ORDERED,
@@ -117,8 +137,8 @@ def chapterize(mp3_path, frames_path, outfile):
 
 
 def main():
-    mp3_path, frames_path, outfile = sys.argv[1:4]
-    chapterize(mp3_path, frames_path, outfile)
+    mp3_path, frames_path, infojson_path, outfile = sys.argv[1:5]
+    chapterize(mp3_path, frames_path, infojson_path, outfile)
 
 
 if __name__ == '__main__':
