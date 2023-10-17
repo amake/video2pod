@@ -1,5 +1,6 @@
 import sys
 import os
+import gzip
 import urllib.request
 from xml.etree import ElementTree
 from yt_dlp import YoutubeDL
@@ -57,7 +58,11 @@ def _find_closest_match(needle, haystack, key: lambda x: x):
 
 def feedswap(known_ids):
     with urllib.request.urlopen(pod_url) as response:
-        raw_xml = response.read()
+        if response.headers['content-encoding'] == 'gzip':
+            with gzip.GzipFile(fileobj=response) as gzfile:
+                raw_xml = gzfile.read()
+        else:
+            raw_xml = response.read()
     xml = ElementTree.fromstring(raw_xml)
 
     feed_title = xml.find('.//channel/title')
