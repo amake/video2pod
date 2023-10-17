@@ -108,6 +108,13 @@ push:
 		--function-name $$($(call config_get,aws_lambda_name)) \
 		--image-uri $$tag
 
+.PHONY: invoke
+invoke: ## Invoke lambda on AWS
+invoke:
+	aws lambda invoke \
+		--function-name $$($(call config_get,aws_lambda_name)) \
+		/dev/null
+
 .PHONY: shell
 shell: | $(env)
 	$(env)/bin/python3
