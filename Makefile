@@ -66,6 +66,15 @@ $(archive): | $(env)
 		--download-archive $(@)/archive.txt \
 		$$($(call config_get,video_playlist_url))
 
+dryrun := --dryrun
+
+.PHONY: sync
+sync: ## Sync distfiles and archive with S3
+sync: | $(dist)
+	deploy_path=s3://$$($(call config_get,deploy_bucket))/$$($(call config_get,deploy_key_prefix)) && \
+	cd $(|) && aws s3 sync $(dryrun) --size-only $$deploy_path .
+	if [ -z "$(dryrun)" ]; then cp $(|)/archive.txt $(archive)/; fi
+
 .PHONY: prune
 prune: ## Remove unneeded archive files
 prune:
@@ -83,8 +92,6 @@ archive-txt: $(archive_txt)
 
 $(archive_txt): $(archive)/archive.txt
 	cp $(<) $(@)
-
-dryrun := --dryrun
 
 .PHONY: deploy
 deploy: | $(dist)
