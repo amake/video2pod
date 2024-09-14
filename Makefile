@@ -32,7 +32,7 @@ $(work)/%: $(archive)/%$(1)
 	ffmpeg -i $$(<) -vsync 0 -filter_complex "select=bitor(gt(scene\,0.3)\,eq(n\,0))" -frame_pts 1 -r 1000 "$$(@)/%d.jpg"
 endef
 
-video_exts = .mkv .webm
+video_exts = .mkv .webm .mp4
 
 $(foreach _,$(video_exts),$(eval $(call explode,$(_))))
 
